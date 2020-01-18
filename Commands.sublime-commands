@@ -130,5 +130,9 @@
 	{
 		"caption": "zzzzz_side_bar",
 		"command": "zzzzz_side_bar"
-	}
+	},
+  {
+    "caption": "File: Navigate",
+    "command": "side_bar_navigate"
+  },
 ]

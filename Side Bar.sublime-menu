@@ -196,9 +196,15 @@
 		"args": {"paths": []}
 	},
 
-	{"caption": "-", "id": "side-bar-edit-open-separator"},
-
-	{
+	{"caption": "-", "id": "side-bar-clip-separator"},
+  {
+    "caption": "Navigate",
+    "id": "side-bar-navigate",
+    "command": "side_bar_navigate",
+    "args": {"paths": []}
+  },
+  {"caption": "-", "id": "side-bar-edit-open-separator"},
+  {
 		"caption": "Find & Replace…",
 		"id": "side-bar-find-selected",
 		"command": "side_bar_find_in_selected",
