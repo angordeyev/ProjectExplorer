@@ -6,6 +6,8 @@ import os, shutil
 import threading, time
 import re
 import subprocess, platform
+from .lfparser import LfParser
+import argparse, shlex
 
 from .edit.Edit import Edit
 from .hurry.filesize import size as hurry_size
@@ -1105,6 +1107,8 @@ class SideBarPasteCommand2(sublime_plugin.WindowCommand):
                 SideBarPasteThread(paths, in_parent, "False", "False", key).start()
 
 
+
+# TODO: remove
 class SideBarCopyNameCommand(sublime_plugin.WindowCommand):
     def run(self, paths=[]):
         items = []
@@ -2834,23 +2838,117 @@ class zzzzzcacheSideBarCommand(sublime_plugin.EventListener):
             Cache.cached = SideBarSelection([view.file_name()])
 
 
-
-
+# TODO: work on this
 class SideBarNavigateCommand(sublime_plugin.WindowCommand):
     def run(self, paths=[]):
-        sublime.message_dialog("Sidebar Enhancements: Thanks for your support ^.^")
-        browser = s.get("default_browser", "")
-        SideBarOpenInBrowserThread("", "", "").try_open(
-            "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DD4SL2AHYJGBW",
-            browser,
-        )
+        items = []
+        for item in SideBarSelection(paths).getSelectedItems():
+            import subprocess
+            subprocess.Popen(["bash", item.path()])
+            #view = sublime.active_window().open_file("/home/andrey/Sources/crb/mix.exs")
+
+        #region = sublime.Region(1, 3)
+        #view.fold(region)
+        #subprocess.call(item.path())
+      # if len(items) > 0:
+      #   command = "\n".join(items)
+      #   from shlex import splid
+      #   splitted = split(command)
+      #   import subprocess
+      #   subprocess.call(command)
+
+
+
+      #subprocess.run(["ls", "-l"])
+      #subprocess.Popen(["subl", "/home/andrey/Sources/crb/mix.exs"])
+
+        # sublime.message_dialog("Sidebar Enhancements: Thanks for your support ^.^")
+        # browser = s.get("default_browser", "")
+        # SideBarOpenInBrowserThread("", "", "").try_open(
+        #     "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DD4SL2AHYJGBW",
+        #     browser,
+        # )
+
+# class SideBarCopyNameCommand(sublime_plugin.EventListener):
+#     def on_new(self, view):
+#        sublime.message_dialog("<message>")
+
+
+# TODO: work on this
+class SideBarNavigate(sublime_plugin.EventListener):
+    def on_post_window_command(self, window, command_name, args):
+
+        print("1")
+        file_path, fragment_start_text, fragment_end_text = self.parse_link_file(args["paths"][0])
+        print(file_path)
+        window.open_file(file_path)
+
+        #region = sublime.Region(1, 3)
+        #sublime.active_window().active_view().fold(region)
+        #sublime.message_dialog(file_path)
+
+
+        fragment_start_line = self.line_num_for_phrase_in_file(fragment_start_text, file_path)
+        fragment_end_line = self.line_num_for_phrase_in_file(fragment_end_text, file_path)
+
+        print("- fragment start line: {}".format(fragment_start_line))
+        print("- fragment end line: {}".format(fragment_end_line))
+
+        sublime.message_dialog(str(fragment_start_line))
+        sublime.message_dialog(str(fragment_end_line))
+
+        #region = sublime.Region(1, 5)
+        #sublime.active_window().active_view().fold(region)
+
+        region = self.getRegionByLines(1, fragment_start_line + 1, window.active_view())
+        sublime.active_window().active_view().fold(region)
+
+        region = self.getRegionByLines(fragment_end_line + 1, window.active_view().size() - 1 , window.active_view())
+        sublime.active_window().active_view().fold(region)
+
+        # region = sublime.Region(fragment_end_line, 9)
+        # sublime.active_window().active_view().fold(region)
+
+        opened_content = open(file_path, 'r', encoding='utf-8').read()
+
+    # returns list [fragment_start_text, fragment_end_text]
+    def parse_link_file(self, path):
+        with open(path, 'r') as f: content = f.read()
+        print("content")
+        print(content)
+        args = LfParser.parse_links(content)
+        print(2)
+        print(args)
+        return (args.file, args.b, args.e)
+
+    def line_num_for_phrase_in_file(self, phrase, filename):
+        with open(filename,'r') as f:
+            for (i, line) in enumerate(f):
+                if phrase in line:
+                    return i
+        return -1
+
+    def getRegionByLines(self, line1, line2, view):
+        a = view.text_point(line1-1, 0)
+        lastCol = view.line(view.text_point(line2-1, 0)).b
+        return sublime.Region(a, lastCol)
+        #sublime.message_dialog(window.project_file_name())
+
+# TODO: REMOVE
+class SideBarCopyNameCommand(sublime_plugin.WindowCommand):
+    def run(self, paths=[]):
+      items = []
+      for item in SideBarSelection(paths).getSelectedItems():
+        items.append(item.contentUTF8())
+      if len(items) > 0:
+        command = "\n".join(items)
+        splitted = shlex.split(command)
+        subprocess.Popen(splitted)
+
+    def is_enabled(self, paths=[]):
+        return CACHED_SELECTION(paths).len() > 0
 
     def is_visible(self, paths=[]):
-        return not (
-            s.get("i_donated_to_sidebar_enhancements_developer", False)
-            == "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DD4SL2AHYJGBW"
-        )
-
-
+        return not s.get("disabled_menuitem_copy_name", False)
 
 
